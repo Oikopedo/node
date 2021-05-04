@@ -37,8 +37,7 @@ module.exports.deleteCard = (req, res) => {
         res.status(404).send({ message: `Карта с id ${req.params.cardId} не найдена!` });
       }
     }).catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError
-        || err instanceof mongoose.Error.CastError) {
+      if (err instanceof mongoose.Error.CastError) {
         res.status(400).send({ message: err.message });
       } else {
         res.status(500).send({ message: 'На сервере произошла ошибка' });
@@ -50,7 +49,7 @@ module.exports.likeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
-    { new: true, runValidators: true },
+    { new: true },
   ).populate('owner').populate('likes')
     .then((card) => {
       if (card) {
@@ -60,8 +59,7 @@ module.exports.likeCard = (req, res) => {
       }
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError
-        || err instanceof mongoose.Error.CastError) {
+      if (err instanceof mongoose.Error.CastError) {
         res.status(400).send({ message: err.message });
       } else {
         res.status(500).send({ message: 'На сервере произошла ошибка' });
@@ -73,7 +71,7 @@ module.exports.dislikeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
-    { new: true, runValidators: true },
+    { new: true },
   ).populate('owner').populate('likes')
     .then((card) => {
       if (card) {
@@ -83,8 +81,7 @@ module.exports.dislikeCard = (req, res) => {
       }
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError
-        || err instanceof mongoose.Error.CastError) {
+      if (err instanceof mongoose.Error.CastError) {
         res.status(400).send({ message: err.message });
       } else {
         res.status(500).send({ message: 'На сервере произошла ошибка' });

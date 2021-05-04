@@ -5,11 +5,10 @@ const { PORT = 3000 } = process.env;
 const app = express();
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
   req.user = {
-    _id: '60900269b6c68712ec22fe9d', // вставьте сюда _id созданного в предыдущем пункте пользователя
+    _id: '6091636713d8b08f99236fd1', // вставьте сюда _id созданного в предыдущем пункте пользователя
   };
 
   next();
@@ -26,5 +25,5 @@ app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
 app.listen(PORT, () => {
-  console.log('Ссылка на сервер');
+  console.log('http://localhost:3000');
 });

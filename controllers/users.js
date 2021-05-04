@@ -1,9 +1,10 @@
+const mongoose = require('mongoose');
 const User = require('../models/user');
 
 module.exports.getUsers = (_, res) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
 };
 
 module.exports.getUser = (req, res) => {
@@ -12,9 +13,16 @@ module.exports.getUser = (req, res) => {
       if (user) {
         res.send({ data: user });
       } else {
-        res.status(404).send({ message: `User with id ${req.params.userId} not found` });
+        res.status(404).send({ message: `Пользователь с id ${req.params.userId} не найден!` });
       }
-    }).catch((err) => res.status(400).send({ message: err.message }));
+    }).catch((err) => {
+      if (err instanceof mongoose.Error.ValidationError
+        || err instanceof mongoose.Error.CastError) {
+        res.status(400).send({ message: err.message });
+      } else {
+        res.status(500).send({ message: 'На сервере произошла ошибка' });
+      }
+    });
 };
 
 module.exports.createUser = (req, res) => {
@@ -23,10 +31,11 @@ module.exports.createUser = (req, res) => {
   User.create({ name, about, avatar })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err instanceof mongoose.Error.ValidationError
+        || err instanceof mongoose.Error.CastError) {
         res.status(400).send({ message: err.message });
       } else {
-        res.status(500).send({ message: err.message });
+        res.status(500).send({ message: 'На сервере произошла ошибка' });
       }
     });
 };
@@ -34,18 +43,19 @@ module.exports.createUser = (req, res) => {
 module.exports.updateMe = (req, res) => {
   const { name, about } = req.body;
 
-  User.findOneAndUpdate(req.user, { name, about }, { new: true })
+  User.findOneAndUpdate(req.user, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       if (user) {
         res.send({ data: user });
       } else {
-        res.status(404).send({ message: 'Your profile cannot be found in our database' });
+        res.status(404).send({ message: 'Такого профиля нет в базе данных!' });
       }
     }).catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err instanceof mongoose.Error.ValidationError
+        || err instanceof mongoose.Error.CastError) {
         res.status(400).send({ message: err.message });
       } else {
-        res.status(500).send({ message: err.message });
+        res.status(500).send({ message: 'На сервере произошла ошибка' });
       }
     });
 };
@@ -53,18 +63,19 @@ module.exports.updateMe = (req, res) => {
 module.exports.updateMyAvatar = (req, res) => {
   const { avatar } = req.body;
 
-  User.findOneAndUpdate(req.user, { avatar }, { new: true })
+  User.findOneAndUpdate(req.user, { avatar }, { new: true, runValidators: true })
     .then((user) => {
       if (user) {
         res.send({ data: user });
       } else {
-        res.status(404).send({ message: 'Your profile cannot be found in our database' });
+        res.status(404).send({ message: 'Такого профиля нет в базе данных!' });
       }
     }).catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err instanceof mongoose.Error.ValidationError
+        || err instanceof mongoose.Error.CastError) {
         res.status(400).send({ message: err.message });
       } else {
-        res.status(500).send({ message: err.message });
+        res.status(500).send({ message: 'На сервере произошла ошибка' });
       }
     });
 };

@@ -19,9 +19,7 @@
     "nodemon": "*"
   },
   "dependencies": {
-    "body-parser": "*",
     "express": "*",
-    "mongodb": "*",
     "mongoose": "*"
   }
 }

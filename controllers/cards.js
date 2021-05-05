@@ -11,12 +11,11 @@ module.exports.getCards = (_, res) => {
 
 module.exports.postCard = (req, res) => {
   const { name, link } = req.body;
-  const ownerId = req.user._id;
-  Card.create({ name, link, owner: ownerId })
+  const { _id } = req.user;
+  Card.create({ name, link, owner: _id })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError
-        || err instanceof mongoose.Error.CastError) {
+      if (err instanceof mongoose.Error.ValidationError) {
         res.status(400).send({ message: err.message });
       } else {
         res.status(500).send({ message: 'На сервере произошла ошибка' });
@@ -38,7 +37,7 @@ module.exports.deleteCard = (req, res) => {
       }
     }).catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        res.status(400).send({ message: err.message });
+        res.status(400).send({ message: `Передан некорректный идентификатор ${req.params.cardId}` });
       } else {
         res.status(500).send({ message: 'На сервере произошла ошибка' });
       }
@@ -46,9 +45,10 @@ module.exports.deleteCard = (req, res) => {
 };
 
 module.exports.likeCard = (req, res) => {
+  const { _id } = req.user;
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
+    { $addToSet: { likes: _id } }, // добавить _id в массив, если его там нет
     { new: true },
   ).populate('owner').populate('likes')
     .then((card) => {
@@ -60,7 +60,11 @@ module.exports.likeCard = (req, res) => {
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        res.status(400).send({ message: err.message });
+        if (err.path === '_id') {
+          res.status(400).send({ message: `Передан некорректный идентификатор ${req.params.cardId}` });
+        } else {
+          res.status(400).send({ message: `Передан некорректный идентификатор ${_id}` });
+        }
       } else {
         res.status(500).send({ message: 'На сервере произошла ошибка' });
       }
@@ -68,9 +72,10 @@ module.exports.likeCard = (req, res) => {
 };
 
 module.exports.dislikeCard = (req, res) => {
+  const { _id } = req.user;
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $pull: { likes: req.user._id } }, // убрать _id из массива
+    { $pull: { likes: _id } }, // убрать _id из массива
     { new: true },
   ).populate('owner').populate('likes')
     .then((card) => {
@@ -82,7 +87,11 @@ module.exports.dislikeCard = (req, res) => {
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        res.status(400).send({ message: err.message });
+        if (err.path === '_id') {
+          res.status(400).send({ message: `Передан некорректный идентификатор ${req.params.cardId}` });
+        } else {
+          res.status(400).send({ message: `Передан некорректный идентификатор ${_id}` });
+        }
       } else {
         res.status(500).send({ message: 'На сервере произошла ошибка' });
       }

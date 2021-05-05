@@ -17,7 +17,7 @@ module.exports.getUser = (req, res) => {
       }
     }).catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        res.status(400).send({ message: err.message });
+        res.status(400).send({ message: `Передан некорректный идентификатор ${req.params.userId}` });
       } else {
         res.status(500).send({ message: 'На сервере произошла ошибка' });
       }
@@ -40,7 +40,7 @@ module.exports.createUser = (req, res) => {
 
 module.exports.updateMe = (req, res) => {
   const { name, about } = req.body;
-
+  const { _id } = req.user;
   User.findOneAndUpdate(req.user, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       if (user) {
@@ -49,9 +49,10 @@ module.exports.updateMe = (req, res) => {
         res.status(404).send({ message: 'Такого профиля нет в базе данных!' });
       }
     }).catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError
-        || err instanceof mongoose.Error.CastError) {
+      if (err instanceof mongoose.Error.ValidationError) {
         res.status(400).send({ message: err.message });
+      } else if (err instanceof mongoose.Error.CastError) {
+        res.status(400).send({ message: `Передан некорректный идентификатор ${_id}` });
       } else {
         res.status(500).send({ message: 'На сервере произошла ошибка' });
       }
@@ -60,7 +61,7 @@ module.exports.updateMe = (req, res) => {
 
 module.exports.updateMyAvatar = (req, res) => {
   const { avatar } = req.body;
-
+  const { _id } = req.user;
   User.findOneAndUpdate(req.user, { avatar }, { new: true, runValidators: true })
     .then((user) => {
       if (user) {
@@ -69,9 +70,10 @@ module.exports.updateMyAvatar = (req, res) => {
         res.status(404).send({ message: 'Такого профиля нет в базе данных!' });
       }
     }).catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError
-        || err instanceof mongoose.Error.CastError) {
+      if (err instanceof mongoose.Error.ValidationError) {
         res.status(400).send({ message: err.message });
+      } else if (err instanceof mongoose.Error.CastError) {
+        res.status(400).send({ message: `Передан некорректный идентификатор ${_id}` });
       } else {
         res.status(500).send({ message: 'На сервере произошла ошибка' });
       }

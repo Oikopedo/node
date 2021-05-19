@@ -1,81 +1,97 @@
-const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const handleError = require('../middleware/handleError');
+const MestoError = require('../errors/MestoError');
 
 module.exports.getUsers = (_, res) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
+    .catch(() => handleError(res, new MestoError()));
 };
 
-module.exports.getUser = (req, res) => {
-  User.findById(req.params.userId)
+function getUserById(res, _id) {
+  User.findById(_id)
     .then((user) => {
-      if (user) {
-        res.send({ data: user });
-      } else {
-        res.status(404).send({ message: `Пользователь с id ${req.params.userId} не найден!` });
+      if (!user) {
+        return Promise.reject(new MestoError(404, `Пользователь с id ${_id} не найден!`));
       }
-    }).catch((err) => {
-      if (err instanceof mongoose.Error.CastError) {
-        res.status(400).send({ message: `Передан некорректный идентификатор ${req.params.userId}` });
-      } else {
-        res.status(500).send({ message: 'На сервере произошла ошибка' });
-      }
-    });
+      return res.send({ data: user });
+    }).catch((err) => handleError(res, err));
+}
+
+module.exports.getUser = (req, res) => {
+  getUserById(res, req.params.userId);
+};
+
+module.exports.getMe = (req, res) => {
+  getUserById(res, req.user);
 };
 
 module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
+  const {
+    email,
+    password,
+    name,
+    about,
+    avatar,
+  } = req.body;
 
-  User.create({ name, about, avatar })
-    .then((user) => res.send({ data: user }))
-    .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError) {
-        res.status(400).send({ message: err.message });
-      } else {
-        res.status(500).send({ message: 'На сервере произошла ошибка' });
-      }
-    });
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      email,
+      password: hash,
+      name,
+      about,
+      avatar,
+    })
+      .then((user) => {
+        user.set('password', undefined);
+        res.send({ data: user });
+      }))
+    .catch((err) => handleError(res, err));
 };
 
 module.exports.updateMe = (req, res) => {
   const { name, about } = req.body;
-  const { _id } = req.user;
   User.findOneAndUpdate(req.user, { name, about }, { new: true, runValidators: true })
     .then((user) => {
-      if (user) {
-        res.send({ data: user });
-      } else {
-        res.status(404).send({ message: 'Такого профиля нет в базе данных!' });
+      if (!user) {
+        return Promise.reject(new MestoError(404, 'Такого профиля нет в базе данных!'));
       }
-    }).catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError) {
-        res.status(400).send({ message: err.message });
-      } else if (err instanceof mongoose.Error.CastError) {
-        res.status(400).send({ message: `Передан некорректный идентификатор ${_id}` });
-      } else {
-        res.status(500).send({ message: 'На сервере произошла ошибка' });
-      }
-    });
+      return res.send({ data: user });
+    }).catch((err) => handleError(res, err));
 };
 
 module.exports.updateMyAvatar = (req, res) => {
   const { avatar } = req.body;
-  const { _id } = req.user;
   User.findOneAndUpdate(req.user, { avatar }, { new: true, runValidators: true })
     .then((user) => {
-      if (user) {
-        res.send({ data: user });
-      } else {
-        res.status(404).send({ message: 'Такого профиля нет в базе данных!' });
+      if (!user) {
+        return Promise.reject(new MestoError(404, 'Такого профиля нет в базе данных!'));
       }
-    }).catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError) {
-        res.status(400).send({ message: err.message });
-      } else if (err instanceof mongoose.Error.CastError) {
-        res.status(400).send({ message: `Передан некорректный идентификатор ${_id}` });
-      } else {
-        res.status(500).send({ message: 'На сервере произошла ошибка' });
+      return res.send({ data: user });
+    }).catch((err) => handleError(res, err));
+};
+
+module.exports.login = (req, res) => {
+  const { email, password } = req.body;
+  User.findOne({ email }).select('+password')
+    .then((user) => {
+      if (!user) {
+        return Promise.reject(new MestoError(401));
       }
-    });
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            return Promise.reject(new MestoError(401));
+          }
+          return user;
+        });
+    })
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+      res.send({ token });
+    })
+    .catch((err) => handleError(res, err));
 };

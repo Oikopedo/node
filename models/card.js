@@ -10,6 +10,10 @@ const cardSchema = new mongoose.Schema({
   link: {
     type: String,
     required: true,
+    validate: {
+      validator: (v) => /^https?:\/\/(www\.)?(?!-)[A-Za-z0-9-]{1,63}(?<!-)\.[A-Za-z]{2,6}((\/|\?)[\w-.~:/?#[\]@!$&'()*+,;=]*)?$/.test(v),
+      message: (props) => `${props.value} is not a valid link`,
+    },
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
@@ -26,3 +30,5 @@ const cardSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('card', cardSchema);
+// validator: (v) => /^https?:\/\/(www\.)?(?!-)[A-Za-z0-9-]{1,63}
+// (?<!-)\.[A-Za-z]{2,6}((\/|\?)[\w-.~:/?#[\]@!\$&'\(\)\*\+,;=]*)?$/.test(v),

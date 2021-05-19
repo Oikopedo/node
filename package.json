@@ -19,7 +19,10 @@
     "nodemon": "*"
   },
   "dependencies": {
+    "bcrypt": "*",
     "express": "*",
-    "mongoose": "*"
+    "jsonwebtoken": "*",
+    "mongoose": "*",
+    "validator": "*"
   }
 }

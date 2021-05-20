@@ -21,7 +21,7 @@ module.exports = (res, err) => {
     return res.status(400).send({ message: err.message });
   }
   if (err.name === 'MongoError' && err.code === 11000) {
-    return res.status(409).send({ message: 'Skata' });
+    return res.status(409).send({ message: 'адрес электронной почты уже существует' });
   }
   return res.status(500).send({ message: 'На сервере произошла ошибка' });
 };

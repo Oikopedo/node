@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
     unique: true,
     validate: {
       validator: validator.isEmail,
-      message: (props) => `${props.value} is not a valid email`,
+      message: (props) => `${props.value} ссылка недействительна`,
     },
   },
   password: {
@@ -30,11 +30,10 @@ const userSchema = new mongoose.Schema({
   },
   avatar: {
     type: String,
-    required: true,
     default: 'http://example.com/pic.jpg',
     validate: {
       validator: (v) => /^https?:\/\/(www\.)?(?!-)[A-Za-z0-9-]{1,63}(?<!-)\.[A-Za-z]{2,6}((\/|\?)[\w-.~:/?#[\]@!$&'()*+,;=]*)?$/.test(v),
-      message: (props) => `${props.value} is not a valid link`,
+      message: (props) => `${props.value} ссылка недействительна`,
     },
   },
 });

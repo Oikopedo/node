@@ -12,7 +12,7 @@ const cardSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator: (v) => /^https?:\/\/(www\.)?(?!-)[A-Za-z0-9-]{1,63}(?<!-)\.[A-Za-z]{2,6}((\/|\?)[\w-.~:/?#[\]@!$&'()*+,;=]*)?$/.test(v),
-      message: (props) => `${props.value} is not a valid link`,
+      message: (props) => `${props.value} ссылка недействительна`,
     },
   },
   owner: {
@@ -30,5 +30,3 @@ const cardSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('card', cardSchema);
-// validator: (v) => /^https?:\/\/(www\.)?(?!-)[A-Za-z0-9-]{1,63}
-// (?<!-)\.[A-Za-z]{2,6}((\/|\?)[\w-.~:/?#[\]@!\$&'\(\)\*\+,;=]*)?$/.test(v),
